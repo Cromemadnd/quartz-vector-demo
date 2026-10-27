@@ -1,0 +1,11 @@
+{
+  "version": "1.0.0",
+  "plugins": {
+    "quartz-skin-vector-2022": {
+      "source": "github:Copartiper/quartz-skin-vector-2022#7a0031978e7542ee916fc747e9f66cdc0af001ec",
+      "resolved": "https://github.com/Copartiper/quartz-skin-vector-2022.git",
+      "commit": "7a0031978e7542ee916fc747e9f66cdc0af001ec",
+      "installedAt": "2026-10-27T16:17:22.149Z"
+    }
+  }
+}

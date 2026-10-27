@@ -1,17 +1,40 @@
-# Quartz v5
+# Quartz Vector Skin Demo
 
-> “[One] who works with the door open gets all kinds of interruptions, but [they] also occasionally gets clues as to what the world is and what might be important.” — Richard Hamming
+An independent, bilingual showcase of [quartz-skin-vector-2022](https://github.com/Copartiper/quartz-skin-vector-2022), a Quartz skin adapted from MediaWiki's Vector 2022.
 
-Quartz is a set of tools that helps you publish your [digital garden](https://jzhao.xyz/posts/networked-thought) and notes as a website for free.
+**Live demo:** https://cromemadnd.github.io/quartz-vector-demo/
 
-🔗 Read the documentation and get started: https://quartz.jzhao.xyz/
+This demonstration is not affiliated with, sponsored by, or endorsed by the Wikimedia Foundation. Example articles describe fictional places. The deployed interface is English, with English and Chinese articles available side by side.
 
-[Join the Discord Community](https://discord.gg/cRFFHYye7t)
+## Development
 
-## Sponsors
+```sh
+npm ci
+npm run build:demo
+```
 
-<p align="center">
-  <a href="https://github.com/sponsors/jackyzha0">
-    <img src="https://cdn.jsdelivr.net/gh/jackyzha0/jackyzha0/sponsorkit/sponsors.svg" />
-  </a>
-</p>
+The build script temporarily selects `quartz.config.en.yaml`, installs the pinned plugin, builds `content/` into `public/`, and restores `quartz.config.yaml`. The latter remains the Chinese configuration for local development:
+
+```sh
+npx quartz build --serve
+```
+
+Both configurations reference the published plugin at an explicit Git commit rather than a developer's local filesystem. To update the skin, change that commit in both configuration files, rebuild, and verify the demonstration before publishing.
+
+## Deployment
+
+Push to `main` to run `.github/workflows/deploy-demo.yaml`. GitHub Actions builds with the English configuration, verifies representative pages and project-subpath URLs, and deploys the generated artifact to GitHub Pages. No custom domain or deployment token is needed.
+
+The repository contains Quartz's history and source. Its original upstream remains https://github.com/jackyzha0/quartz. Workflows inherited from upstream are guarded to run only in the official Quartz repository; the demo workflow handles publication here.
+
+## Content and licenses
+
+- `content/index.md`: English landing page with bilingual project identification.
+- `content/features/index-en.md`: English feature guide.
+- `content/features/index.md`: Chinese feature guide.
+- `content/features/infobox-en.md` and `infobox.md`: English and Chinese sample articles.
+- `content/features/formatting.md`: original formatting fixture.
+
+Quartz is distributed under the MIT license; see [LICENSE.txt](LICENSE.txt). The adapted skin is a separate project under GPL-2.0-or-later; see its [license and upstream notices](https://github.com/Copartiper/quartz-skin-vector-2022). This repository does not redistribute Wikipedia articles.
+
+See [README.demo-languages.md](README.demo-languages.md) for language and configuration details.

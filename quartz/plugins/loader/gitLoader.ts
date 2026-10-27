@@ -1,6 +1,6 @@
 import fs from "fs"
 import path from "path"
-import { execSync } from "child_process"
+import { execSync, execFileSync } from "child_process"
 import git from "isomorphic-git"
 import http from "isomorphic-git/http/node"
 import { styleText } from "util"
@@ -422,6 +422,19 @@ interface PluginInstallResult {
   nativeDeps: Map<string, string>
 }
 
+/** Clone either a branch/tag or an immutable full commit ID. */
+export function clonePluginRepository(repo: string, directory: string, ref?: string): void {
+  const run = (args: string[]) => execFileSync("git", args, { stdio: "pipe" })
+  if (ref && /^[a-f0-9]{40}$/i.test(ref)) {
+    run(["init", directory])
+    run(["-C", directory, "remote", "add", "origin", repo])
+    run(["-C", directory, "fetch", "--depth", "1", "origin", ref])
+    run(["-C", directory, "checkout", "--detach", "FETCH_HEAD"])
+  } else {
+    run(["clone", "--depth", "1", ...(ref ? ["--branch", ref] : []), repo, directory])
+  }
+}
+
 /**
  * Install a plugin from a Git repository, or symlink a local plugin.
  * Returns the plugin directory and any native dependencies it requires.
@@ -497,7 +510,14 @@ export async function installPlugin(
       }
     } else {
       try {
-        await git.resolveRef({ fs, dir: pluginDir, ref: "HEAD" })
+        const head = await git.resolveRef({ fs, dir: pluginDir, ref: "HEAD" })
+        if (
+          spec.ref &&
+          /^[a-f0-9]{40}$/i.test(spec.ref) &&
+          head.toLowerCase() !== spec.ref.toLowerCase()
+        ) {
+          throw new Error("Installed plugin does not match the pinned commit")
+        }
         if (options.verbose) {
           console.log(styleText("cyan", `→`), `Plugin ${spec.name} already installed`)
         }
@@ -528,8 +548,7 @@ export async function installPlugin(
       fs.rmSync(tmpDir, { recursive: true })
     }
 
-    const branchArg = spec.ref ? ` --branch ${spec.ref}` : ""
-    execSync(`git clone --depth 1${branchArg} "${spec.repo}" "${tmpDir}"`, { stdio: "pipe" })
+    clonePluginRepository(spec.repo, tmpDir, spec.ref)
 
     const subdirPath = path.join(tmpDir, spec.subdir)
     if (!fs.existsSync(subdirPath)) {
@@ -540,8 +559,7 @@ export async function installPlugin(
     fs.renameSync(subdirPath, pluginDir)
     fs.rmSync(tmpDir, { recursive: true })
   } else {
-    const branchArg = spec.ref ? ` --branch ${spec.ref}` : ""
-    execSync(`git clone --depth 1${branchArg} "${spec.repo}" "${pluginDir}"`, { stdio: "pipe" })
+    clonePluginRepository(spec.repo, pluginDir, spec.ref)
   }
 
   buildInstalledPlugin(pluginDir, spec.name, options.verbose)
